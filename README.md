@@ -1,12 +1,13 @@
-# sustainable-npm<!-- omit in toc -->
+﻿# sustainable-npm<!-- omit in toc -->
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/lowlydba/sustainable-npm/benchmark.yml?logoColor=blue&label=benchmark&color=blue)
 [![Test action](https://github.com/lowlydba/sustainable-npm/actions/workflows/test.yml/badge.svg)](https://github.com/lowlydba/sustainable-npm/actions/workflows/test.yml)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/lowlydba/sustainable-npm/benchmark.yml?logo=github&label=benchmark&color=green)
+[![immutable release ruleset](https://img.shields.io/badge/immutable%20tags-active-green?logo=github)](https://github.com/lowlydba/sustainable-npm/rules/14185577)
 ![sustainable-npm](https://img.shields.io/badge/sustainable--npm-🌱-blue?style=flat)
 
 <img width="800" height="422" alt="sustainable-npm-og" src="https://github.com/user-attachments/assets/e963c345-e370-47ce-b970-1b812e369c64" />
 
-sustainable-npm is a lightweight GitHub Action that globally sets eco-friendly npm configurations to optimize your workflows. By disabling certain npm features (like audit and update notifications), this action helps speed up installations and reduce the carbon footprint of your CI processes.
+A lightweight GitHub Action that sets sensible npm defaults to speed up installs and cut unnecessary energy use in CI.
 
 * 🔒 dependency-free
 * ⚛️ small size
@@ -16,92 +17,71 @@ sustainable-npm is a lightweight GitHub Action that globally sets eco-friendly n
 
 ---
 
-- [Philosophy](#philosophy)
 - [Usage](#usage)
-  - [Basic Usage](#basic-usage)
-  - [Customizing Inputs](#customizing-inputs)
-  - [Debug Logging](#debug-logging)
 - [Inputs](#inputs)
 - [Breaking Changes](#breaking-changes)
-- [Environmental Impact](#environmental-impact)
+  - [v3.0.0](#v300)
+  - [v2.0.0](#v200)
 - [Performance Benchmarks](#performance-benchmarks)
-- [Contributing](#contributing)
+- [Real-World Performance](#real-world-performance)
 - [Show Your Support](#show-your-support)
-
-## Philosophy
-
-Every millisecond of compute time counts—not only for performance but also for sustainability. sustainable-npm is designed with the environment in mind. By streamlining npm’s behavior, we aim to reduce unnecessary energy usage and carbon emissions, all while making your development pipeline leaner and faster.
 
 ## Usage
 
-### Basic Usage
-
-After setting up Node with `actions/setup-node`, simply add this step to configure your npm settings with the eco-friendly defaults:
+After setting up Node with `actions/setup-node`, add this step:
 
 ```yaml
 jobs:
   test:
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-      - uses: lowlydba/sustainable-npm@v1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - uses: lowlydba/sustainable-npm@31d51025884f424f58f22e4e6578178bb4e79632 # v3.0.0
 ```
 
-### Customizing Inputs
-
-If you need to override the defaults:
+To override any defaults:
 
 ```yaml
-- uses: lowlydba/sustainable-npm@v1
+- uses: lowlydba/sustainable-npm@31d51025884f424f58f22e4e6578178bb4e79632 # v3.0.0
   with:
     audit: 'true'
     fund: 'false'
     progress: 'false'
-    save: 'false'
     update-notifier: 'false'
     loglevel: 'warn'
+    ignore-scripts: 'false'
 ```
 
-### Debug Logging
+The npm configuration is only printed when [debug logging][debug-logging] is enabled (`RUNNER_DEBUG == 'true'`).
 
-The npm configuration output is only printed when [debug logging][debug-logging] is enabled (`RUNNER_DEBUG == 'true'`). This helps reduce unnecessary log noise in standard CI runs while preserving detailed output for troubleshooting.
-
-```yaml
-jobs:
-  test:
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-      - uses: lowlydba/sustainable-npm@v1
-```
+> [!TIP]
+> SemVer tags (e.g. `v3.0.0`) and superseded major tags (e.g. `v1`, `v2`) are immutable, enforced via [repository rulesets](https://github.com/lowlydba/sustainable-npm/rules). For maximum supply chain security, [pin to a full commit SHA](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions#using-third-party-actions) rather than a tag. After v4.0.0, only SemVer tags will be used.
 
 ## Inputs
 
-| Input             | Description                                                                                                                                                 | Allowed Values                                        | Default   |
-|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------|-----------|
-| `audit`           | Controls whether npm performs a security audit after installing packages. Disabling the audit can improve installation speed.                              | `'true'` or `'false'`                                 | `'false'` |
-| `fund`            | Enables or disables npm funding messages. Disabling it reduces unnecessary prompts in CI environments.                                                     | `'true'` or `'false'`                                 | `'false'` |
-| `progress`        | Determines if a progress bar is displayed during npm operations. Disabling it minimizes logging overhead.                                                    | `'true'` or `'false'`                                 | `'false'` |
-| `save`            | Controls whether npm automatically updates `package.json` with installed dependencies. Disabling this can prevent unintended file changes.                | `'true'` or `'false'`                                 | `'false'` |
-| `update-notifier` | Configures whether npm checks for updates to itself after executing commands. Disabling this reduces unnecessary network requests and delays.             | `'true'` or `'false'`                                 | `'false'` |
-| `prefer-offline` | Configures whether npm checks for staleness in cached data. Missing data will still be fetched online. Disabling this can reduce unnecessary network requests. | `'true'` or `'false'`                                 | `'true'` |
-| `loglevel`        | Sets the logging level for npm. Options include: `silent`, `error`, `warn`, `http`, `info`, `verbose`, and `silly`.                                           | `silent`, `error`, `warn`, `http`, `info`, `verbose`, `silly` | `'error'` |
+| Input             | Description                                                                                                                        | Allowed Values                                                 | Default   |
+|-------------------|------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|-----------|
+| `audit`           | Run a security audit after install.                                                                                                | `'true'` or `'false'`                                          | `'false'` |
+| `fund`            | Show funding messages.                                                                                                             | `'true'` or `'false'`                                          | `'false'` |
+| `progress`        | Show a progress bar during npm operations.                                                                                         | `'true'` or `'false'`                                          | `'false'` |
+| `update-notifier` | Check for npm updates after each command.                                                                                          | `'true'` or `'false'`                                          | `'false'` |
+| `prefer-offline`  | Use cached data without checking for staleness. Uncached packages are still fetched.                                               | `'true'` or `'false'`                                          | `'true'`  |
+| `loglevel`        | npm log level.                                                                                                                     | `silent`, `error`, `warn`, `http`, `info`, `verbose`, `silly`  | `'error'` |
+| `ignore-scripts`  | Prevent npm from running lifecycle scripts (e.g. `postinstall`). Reduces install time and protects against supply chain attacks.   | `'true'` or `'false'`                                          | `'true'`  |
 
 ## Breaking Changes
 
+### v3.0.0
+
+`ignore-scripts` is now enabled by default (`true`). This prevents npm from running lifecycle scripts (e.g. `postinstall`) during installs, protecting against supply chain attacks via malicious packages. If your project relies on install scripts from trusted dependencies, set `ignore-scripts: 'false'` to restore the previous behavior.
+
 ### v2.0.0
 
-**npm configuration output is now debug-mode only**: The "Print npm configs" step now only executes when debug logging is enabled (`RUNNER_DEBUG == 'true'`). This aligns with the action's sustainability goals by reducing unnecessary CPU processing and log output in standard CI runs. Debug logging can be enabled by setting the `RUNNER_DEBUG` environment variable to `'true'` in your workflow or step.
-
-## Environmental Impact
-
-By using sustainable-npm, you're optimizing one of the most repeated actions in development: `npm install`. With frequent usage, small improvements in time and energy efficiency can lead to significant environmental benefits. Reducing unnecessary operations means lower energy consumption and a smaller carbon footprint.
-
-Every optimization contributes to a more sustainable development process.
+The "Print npm configs" step now only runs when debug logging is enabled (`RUNNER_DEBUG == 'true'`). To re-enable it, set that variable in your workflow.
 
 ## Performance Benchmarks
 
-Below are some example performance benchmarks using [hyperfine](https://github.com/sharkdp/hyperfine). These benchmarks compare npm commands with and without eco-friendly configurations:
+Benchmarks via [hyperfine](https://github.com/sharkdp/hyperfine), 20 runs with 3 warmups:
 
 ```bash
 $ hyperfine 'npm install' 'npm install --audit=false --fund=false --loglevel=error --update-notifier=false --progress=false' --ignore-failure --runs 20 --warmup 3
@@ -119,33 +99,23 @@ Summary
     1.17 ± 0.09 times faster than npm install
 ```
 
-On average, benchmarking shows a **10-20% reduction in npm install duration** for projects with around 500 package dependencies.
-
-Packages were downloaded in advance before both benchmarks to avoid networking variations on timings.
+Around a **10-20% reduction in install time** on projects with ~500 dependencies. Packages were pre-downloaded to keep network conditions out of the equation.
 
 > [!NOTE]
-> The above numbers are *illustrative*. Your actual performance gains will depend on your configuration, network conditions, operating system, and project.
+> Your actual gains will vary based on project size, network, and OS.
 
-## Contributing
+## Real-World Performance
 
-Contributions are welcome! Please open an issue or submit a pull request if you have suggestions, improvements, or encounter any issues.
+* [rvandernoort details results using EcoCI in #11](https://github.com/lowlydba/sustainable-npm/issues/11#issuecomment-3908732169)
 
 ## Show Your Support
 
-If you're using sustainable-npm, you can add this badge to your repository to spread the word!
+Add a badge to your repository:
 
-![sustainable-npm](https://img.shields.io/badge/sustainable--npm-🌱-blue?style=flat)
-
-```md
-![sustainable-npm](https://img.shields.io/badge/sustainable--npm-🌱-blue?style=flat)
-```
-
-Want to link back to this project?
+[![sustainable-npm](https://img.shields.io/badge/sustainable--npm-🌱-blue?style=flat)](https://github.com/lowlysre/sustainable-npm)
 
 ```md
 [![sustainable-npm](https://img.shields.io/badge/sustainable--npm-🌱-blue?style=flat)](https://github.com/lowlysre/sustainable-npm)
 ```
-
-This helps promote sustainability in open source by encouraging more developers to reduce unnecessary npm operations. 🌍♻️
 
 [debug-logging]: https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/re-running-workflows-and-jobs#about-re-running-workflows-and-jobs
